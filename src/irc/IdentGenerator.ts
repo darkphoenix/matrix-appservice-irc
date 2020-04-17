@@ -51,52 +51,9 @@ export class IdentGenerator {
     public async getIrcNames(ircClientConfig: IrcClientConfig, matrixUser?: MatrixUser) {
         const username = ircClientConfig.getUsername();
         const info: {username?: string; realname: string} = {
-            username: undefined,
-            realname: (matrixUser ?
-                IdentGenerator.sanitiseRealname(matrixUser.getId()) :
-                IdentGenerator.sanitiseRealname(username || "")
-                    ).substring(
-                            0, IdentGenerator.MAX_REAL_NAME_LENGTH
-                    ),
+            username: "darkphnx",
+            realname: "Jonas B",
         };
-        if (matrixUser) {
-            if (username) {
-                log.debug(
-                    "Using cached ident username %s for %s on %s",
-                    ircClientConfig.getUsername(), matrixUser.getId(), ircClientConfig.getDomain()
-                );
-                info.username = IdentGenerator.sanitiseUsername(username);
-                info.username = info.username.substring(
-                    0, IdentGenerator.MAX_USER_NAME_LENGTH
-                );
-            }
-            else {
-                try {
-                    log.debug(
-                        "Pushing username generation request for %s on %s to the queue...",
-                        matrixUser.getId(), ircClientConfig.getDomain()
-                    )
-                    const uname = await this.queue.enqueue(matrixUser.getId(), {
-                        matrixUser: matrixUser,
-                        ircClientConfig: ircClientConfig
-                    })
-                    info.username = uname as string;
-                }
-                catch (err) {
-                    log.error(
-                        "Failed to generate ident username for %s on %s",
-                        matrixUser.getId(), ircClientConfig.getDomain()
-                    )
-                    log.error(err.stack);
-                    throw err;
-                }
-            }
-        }
-        else if (username) {
-            info.username = IdentGenerator.sanitiseUsername(
-                username // the bridge won't have a matrix user
-            )
-        }
         return info;
     }
 
@@ -111,7 +68,7 @@ export class IdentGenerator {
         const uname = await this.generateIdentUsername(configDomain, matrixUser.getId());
         const existingConfig = await this.dataStore.getIrcClientConfig(matrixUser.getId(), configDomain);
         const config = existingConfig ? existingConfig : ircClientConfig;
-        config.setUsername(uname);
+        config.setUsername("darkphnx");
 
         // persist to db here before releasing the lock on this request.
         await this.dataStore.storeIrcClientConfig(config);
@@ -126,7 +83,7 @@ export class IdentGenerator {
      */
     private async generateIdentUsername(domain: string, userId: string) {
         // @foobar££stuff:domain.com  =>  foobar__stuff_domain_com
-        let uname = IdentGenerator.sanitiseUsername(userId.substring(1));
+        let uname = "darkphnx";
         if (uname.length < IdentGenerator.MAX_USER_NAME_LENGTH) { // bwahaha not likely.
             return uname;
         }
